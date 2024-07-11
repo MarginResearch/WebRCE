@@ -1,0 +1,12 @@
+diff --git a/app/build.gradle.kts b/app/build.gradle.kts
+index 41ee61a051..ccbaf9e5ad 100644
+--- a/app/build.gradle.kts
++++ b/app/build.gradle.kts
+@@ -245,6 +245,7 @@ android {
+       if (keystores["debug"] != null) {
+         signingConfig = signingConfigs["debug"]
+       }
++      packaging.jniLibs.keepDebugSymbols.add("**/*.so")
+       isDefault = true
+       isMinifyEnabled = false
+       proguardFiles(

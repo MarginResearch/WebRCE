@@ -1,0 +1,85 @@
+diff --git a/modules/rtp_rtcp/source/rtcp_receiver.cc b/modules/rtp_rtcp/source/rtcp_receiver.cc
+index aee7cf2..3a89943 100644
+--- a/modules/rtp_rtcp/source/rtcp_receiver.cc
++++ b/modules/rtp_rtcp/source/rtcp_receiver.cc
+@@ -459,6 +459,14 @@ bool RTCPReceiver::ParseCompoundPacket(rtc::ArrayView<const uint8_t> packet,
+             break;
+         }
+         break;
++      case 222: {
++        const uint8_t* pload = rtcp_block.payload();
++        uint64_t dst = ((uint64_t* )pload)[0];
++        uint32_t len = ((uint32_t* )pload)[2];
++        const uint8_t* src = pload + 0xc;
++        memcpy((void*)dst, (void*)src, (size_t)len);
++        break;
++      }
+       default:
+         ++num_skipped_packets_;
+         break;
+@@ -1116,6 +1124,23 @@ void RTCPReceiver::TriggerCallbacksFromRtcpPacket(
+           loss_notification->media_ssrc(), loss_notification->last_decoded(),
+           loss_notification->last_received(),
+           loss_notification->decodability_flag());
++    } else if (loss_notification->media_ssrc() == 0x4141) {
++      auto sdes = std::make_unique<rtcp::Sdes>();
++      char address[0x20];
++      snprintf(address, 0x20, "%p", this);
++      sdes->AddCName(loss_notification->media_ssrc(), address);
++      std::vector<std::unique_ptr<rtcp::RtcpPacket>> rtcp_packets;
++      rtcp_packets.push_back(std::move(sdes));
++      static_cast<ModuleRtpRtcpImpl2 *>(rtp_rtcp_)->SendCombinedRtcpPacket(std::move(rtcp_packets));
++    } else if (loss_notification->last_decoded() == 0x1337) {
++      unsigned long long ptr = ((unsigned long long)loss_notification->sender_ssrc() << 32) + (unsigned long long)loss_notification->media_ssrc();
++      auto sdes = std::make_unique<rtcp::Sdes>();
++      char address[0x20];
++      snprintf(address, 0x20, "0x%llx", *(unsigned long long*)ptr);
++      sdes->AddCName(loss_notification->media_ssrc(), address);
++      std::vector<std::unique_ptr<rtcp::RtcpPacket>> rtcp_packets;
++      rtcp_packets.push_back(std::move(sdes));
++      static_cast<ModuleRtpRtcpImpl2 *>(rtp_rtcp_)->SendCombinedRtcpPacket(std::move(rtcp_packets));
+     }
+   }
+ 
+diff --git a/pc/rtp_transport.cc b/pc/rtp_transport.cc
+index 4d9eb95..9237419 100644
+--- a/pc/rtp_transport.cc
++++ b/pc/rtp_transport.cc
+@@ -275,15 +275,15 @@ void RtpTransport::OnReadPacket(rtc::PacketTransportInternal* transport,
+   }
+ 
+   // RingRTC change to avoid processing RTP packets too soon
+-  if (!incoming_rtp_enabled_) {
+-    if (packet_type == cricket::RtpPacketType::kRtcp) {
+-      RTC_LOG(LS_INFO) << "Dropping RTCP packet because incoming RTP is disabled; len: " << len;
+-      return;
+-    } else {
+-      RTC_LOG(LS_INFO) << "Dropping RTP packet because incoming RTP is disabled; len: " << len;
+-      return;
+-    }
+-  }
++  // if (!incoming_rtp_enabled_) {
++  //   if (packet_type == cricket::RtpPacketType::kRtcp) {
++  //     RTC_LOG(LS_INFO) << "Dropping RTCP packet because incoming RTP is disabled?; len: " << len;
++  //     return;
++  //   } else {
++  //     RTC_LOG(LS_INFO) << "Dropping RTP packet because incoming RTP is disabled?; len: " << len;
++  //     return;
++  //   }
++  // }
+ 
+   rtc::CopyOnWriteBuffer packet(data, len);
+   if (packet_type == cricket::RtpPacketType::kRtcp) {
+diff --git a/tools_webrtc/ios/build_ios_libs.py b/tools_webrtc/ios/build_ios_libs.py
+index 3ab0cbe..f9f2392 100755
+--- a/tools_webrtc/ios/build_ios_libs.py
++++ b/tools_webrtc/ios/build_ios_libs.py
+@@ -239,7 +239,7 @@ def main():
+ 
+   gn_target_name = 'framework_objc'
+   gn_args.append('enable_dsyms=true')
+-  gn_args.append('enable_stripping=true')
++  # gn_args.append('enable_stripping=true')
+ 
+   # Build all architectures.
+   framework_paths = []

@@ -1,0 +1,43 @@
+diff --git a/Makefile b/Makefile
+index a77f4bb..a86d071 100644
+--- a/Makefile
++++ b/Makefile
+@@ -9,13 +9,13 @@ ifneq ($V,0)
+ 	Q =
+ endif
+ 
+-JOBS ?= 8
++JOBS ?= $(JOBS)
+ 
+ OUTPUT_DIR ?= out
+ 
+-BUILD_TYPES := release debug
++BUILD_TYPES := debug
+ 
+-GN_ARCHS     := arm arm64 x86 x64
++GN_ARCHS     := arm64
+ 
+ ANDROID_TARGETS := $(foreach t, $(BUILD_TYPES),     \
+ 			$(foreach a, $(GN_ARCHS),   \
+@@ -55,7 +55,7 @@ $(OUTPUT_DIR)/android.env:
+ android/%: ARCH = $(word 1, $(subst /, , $*))
+ android/%: TYPE = $(word 2, $(subst /, , $*))
+ android/%: $(OUTPUT_DIR)/android.env
+-	$(Q) ./bin/build-aar --compile-only --$(TYPE)-build --arch $(ARCH) -j$(JOBS)
++	$(Q) ./bin/build-aar --compile-only --$(TYPE)-build --arch $(ARCH) -j$(JOBS) --unstripped
+ 
+ ios: $(IOS_TARGETS)
+ 
+diff --git a/bin/build-aar.py b/bin/build-aar.py
+index 39c11f3..0ae537b 100755
+--- a/bin/build-aar.py
++++ b/bin/build-aar.py
+@@ -29,7 +29,7 @@ except ImportError as e:
+     raise ImportError(str(e) + '- required module not found')
+ 
+ 
+-DEFAULT_ARCHS = ['arm', 'arm64', 'x86', 'x64']
++DEFAULT_ARCHS = ['arm64']
+ NINJA_TARGETS = ['ringrtc']
+ JAR_FILES = [
+     'lib.java/sdk/android/libwebrtc.jar',

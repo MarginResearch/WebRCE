@@ -1,0 +1,31 @@
+diff --git a/Target Support Files/SignalRingRTC/SignalRingRTC-xcframeworks.sh b/Target Support Files/SignalRingRTC/SignalRingRTC-xcframeworks.sh
+index a85cfbdb..7d773b4e 100755
+--- a/Target Support Files/SignalRingRTC/SignalRingRTC-xcframeworks.sh	
++++ b/Target Support Files/SignalRingRTC/SignalRingRTC-xcframeworks.sh	
+@@ -17,6 +17,9 @@ RSYNC_PROTECT_TMP_FILES=(--filter "P .*.??????")
+ variant_for_slice()
+ {
+   case "$1" in
++  "WebRTC.xcframework/ios-arm64-simulator")
++    echo "simulator"
++    ;;
+   "WebRTC.xcframework/ios-arm64")
+     echo ""
+     ;;
+@@ -29,6 +32,9 @@ variant_for_slice()
+ archs_for_slice()
+ {
+   case "$1" in
++  "WebRTC.xcframework/ios-arm64-simulator")
++    echo "arm64"
++    ;;
+   "WebRTC.xcframework/ios-arm64")
+     echo "arm64"
+     ;;
+@@ -117,5 +123,5 @@ install_xcframework() {
+   echo "Copied $source to $destination"
+ }
+ 
+-install_xcframework "${PODS_ROOT}/SignalRingRTC/out/release/WebRTC.xcframework" "SignalRingRTC/WebRTC" "framework" "ios-arm64" "ios-arm64_x86_64-simulator"
++install_xcframework "${PODS_ROOT}/SignalRingRTC/out/release/WebRTC.xcframework" "SignalRingRTC/WebRTC" "framework" "ios-arm64-simulator"
+ 

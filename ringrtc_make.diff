@@ -1,0 +1,37 @@
+diff --git a/Makefile b/Makefile
+index a77f4bb..bbf56c7 100644
+--- a/Makefile
++++ b/Makefile
+@@ -21,7 +21,7 @@ ANDROID_TARGETS := $(foreach t, $(BUILD_TYPES),     \
+ 			$(foreach a, $(GN_ARCHS),   \
+ 				android/$(a)/$(t)))
+ 
+-IOS_TARGETS := ios/release
++IOS_TARGETS := ios/debug
+ 
+ # This can be overridden on the command line, e.g. "make electron NODEJS_ARCH=ia32"
+ # Note: make sure to only use NodeJS architectures here, like x64, ia32, arm64, etc.
+diff --git a/bin/build-ios b/bin/build-ios
+index 5d274b1..865e00f 100755
+--- a/bin/build-ios
++++ b/bin/build-ios
+@@ -63,7 +63,7 @@ clean()
+ 
+ BUILD_WHAT=all
+ BUILD_TYPE=release
+-HOST_SIM_ONLY=
++HOST_SIM_ONLY=yes
+ ARCHIVE_WEBRTC=
+ ARCHIVE_RINGRTC=
+ 
+@@ -144,8 +144,8 @@ then
+   # Delete dSYMs out of the built XCFramework.
+   # FIXME: In the future, we probably want to keep these,
+   # which is why we aren't changing WebRTC's build script to skip them altogether.
+-  rm -r "${OUTPUT_DIR}"/${BUILD_TYPE}/WebRTC.xcframework/*/dSYMs
+-  plutil -remove AvailableLibraries.DebugSymbolsPath "${OUTPUT_DIR}"/${BUILD_TYPE}/WebRTC.xcframework/Info.plist
++  # rm -r "${OUTPUT_DIR}"/${BUILD_TYPE}/WebRTC.xcframework/*/dSYMs
++  # plutil -remove AvailableLibraries.DebugSymbolsPath "${OUTPUT_DIR}"/${BUILD_TYPE}/WebRTC.xcframework/Info.plist
+ 
+   # Create the test podspec for WebRTC.
+   # Note that this is at the top level, specifying the most recently built of "debug" or "release"
