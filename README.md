@@ -28,7 +28,7 @@ brew install coreutils
 This POC uses the following versions:
 * Target: Signal-iOS v7.13.0.131, RingRTC v2.42.0, WebRTC tag 6261i (with
 injected WebRTC vulns)
-* Thrower: Signal-Android v7.5.2 (with debug symbols) emulated using Google
+* Thrower: Signal-Android v7.10.3 (with debug symbols) emulated using Google
 Pixel 6, Android 11, API 30 from Android Studio devices
 * Frida-server v16.3.3
 
@@ -46,13 +46,13 @@ of your choice.
 
 The "Thrower" can be any device with Signal installed including WebRTC
 debug symbols, and it is easiest to do this by compiling `Signal-Android` from
-source. **This must be done on a Linux device**.
+source. **Compilation must occur on a Linux device**.
 
 Set the `DEPOT_TOOLS` environment variable as noted above and run `make
-build-android-debug`. This will fetch Signal v7.5.2 and build from source using
+build-android-debug`. This will fetch Signal v7.10.3 and build from source using
 Docker reproducible builds. It will also handle creating a signing keychain and
 signing the APK. Once complete, the signed APK in
-`$(PWD)/Signal-Android-play-prod-arm64-v8a-debug-7.5.2_signed_aligned.apk`
+`$(PWD)/Signal-Android-play-prod-arm64-v8a-debug-7.10.3_signed_aligned.apk`
 can be installed in an emulated Android device by dragging and dropping. Android
 Studio devices, such as the Pixel 6 device noted in this README's intro, work
 just fine for this purpose.

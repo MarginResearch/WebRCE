@@ -40,8 +40,8 @@ endif
 	rm -rf ringrtc-debug
 	sudo apt install libglib2.0-dev
 	git clone https://github.com/signalapp/ringrtc.git ringrtc-debug
-	# update version as of April 2024
-	cd ringrtc-debug; git checkout v2.40.0; git apply ../ringrtc_android.diff
+	# update version as of July 2024
+	cd ringrtc-debug; git checkout v2.44.0; git apply ../ringrtc_android.diff
 	cd ringrtc-debug; rustup target add \
 		armv7-linux-androideabi aarch64-linux-android i686-linux-android \
 		x86_64-linux-android
@@ -65,15 +65,15 @@ endif
 ifeq (,$(wildcard $(shell pwd)/sdk))
 	$(MAKE) download-android-sdk-tools
 endif
-	# update to 7.5.2 as of April 2024
+	# update to 7.10.3 as of July 2024
 	./sdk/build-tools/30.0.3/zipalign -p 4 \
-		$(PWD)/Signal-Android-play-prod-arm64-v8a-debug-7.5.2.apk \
-		$(PWD)/Signal-Android-play-prod-arm64-v8a-debug-7.5.2_unsigned_aligned.apk
+		$(PWD)/Signal-Android-play-prod-arm64-v8a-debug-7.10.3.apk \
+		$(PWD)/Signal-Android-play-prod-arm64-v8a-debug-7.10.3_unsigned_aligned.apk
 	./sdk/build-tools/30.0.3/apksigner sign --ks-key-alias alias_name --ks \
 		my-release-key.keystore --in \
-		$(PWD)/Signal-Android-play-prod-arm64-v8a-debug-7.5.2_unsigned_aligned.apk \
+		$(PWD)/Signal-Android-play-prod-arm64-v8a-debug-7.10.3_unsigned_aligned.apk \
 		--out \
-		$(PWD)/Signal-Android-play-prod-arm64-v8a-debug-7.5.2_signed_aligned.apk
+		$(PWD)/Signal-Android-play-prod-arm64-v8a-debug-7.10.3_signed_aligned.apk
 
 build-android-debug:
 ifeq (,$(wildcard $(shell pwd)/ringrtc-debug))
@@ -82,8 +82,8 @@ endif
 	sudo rm -rf Signal-Android-debug
 	git clone https://github.com/signalapp/Signal-Android.git \
 		--recurse-submodules Signal-Android-debug
-	# update to 7.5.2 as of Apr 2024
-	cd Signal-Android-debug; git checkout tags/v7.5.2
+	# update to 7.10.3 as of July 2024
+	cd Signal-Android-debug; git checkout tags/v7.10.3
 	cd Signal-Android-debug; git apply ../signal_android.diff
 	cp $(PWD)/ringrtc-debug/out/android-arm64/debug/lib.unstripped/libringrtc.so \
 		./Signal-Android-debug/app/src/main/jniLibs/arm64-v8a
@@ -93,7 +93,7 @@ endif
 	cd Signal-Android-debug; docker run --rm -v $$(pwd):/project \
 		-w /project signal-android \
 		sh -c "git config --global --add safe.directory /project; ./gradlew clean assemblePlayProdDebug"
-	cp Signal-Android-debug/app/build/outputs/apk/playProd/debug/Signal-Android-play-prod-arm64-v8a-debug-7.5.2.apk .
+	cp Signal-Android-debug/app/build/outputs/apk/playProd/debug/Signal-Android-play-prod-arm64-v8a-debug-7.10.3.apk .
 	$(MAKE) sign-android
 
 remove-ios:
