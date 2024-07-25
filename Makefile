@@ -105,11 +105,40 @@ rebuild-ringrtc: check-depot-tools
 	cd Signal-iOS-debug/Pods/SignalRingRTC; \
 		PATH=$(DEPOT_TOOLS):$(PATH) make ios
 	cd Signal-iOS-debug/Pods/SignalRingRTC; \
+		mv out/build/aarch64-apple-ios-sim/debug \
+			out/build/aarch64-apple-ios-sim/release; \
 		mv out/build/debug out/build/release; \
 		mv out/debug out/release
 	cd Signal-iOS-debug/Pods/SignalRingRTC; \
 		cp out/release/libringrtc/aarch64-apple-ios-sim/libringrtc.a \
 		out/release/libringrtc/
+
+build-ios-archive: remove-ios check-depot-tools
+	git clone https://github.com/signalapp/Signal-iOS.git \
+	  --recurse-submodules Signal-iOS
+	# signal-ios version 7.13.0.131 as of Jun 2024
+	cd Signal-iOS; git checkout tags/7.13.0.131
+	cd Signal-iOS; make dependencies
+	cd Signal-iOS/Pods; rm -rf SignalRingRTC; \
+		git clone https://github.com/signalapp/ringrtc.git SignalRingRTC
+	cd Signal-iOS/Pods/SignalRingRTC; \
+		git checkout tags/v2.42.0
+	cd Signal-iOS/Pods; git apply ../../pods_archive.diff
+	cd Signal-iOS/Pods/SignalRingRTC/; \
+		rustup target add aarch64-apple-ios x86_64-apple-ios \
+			aarch64-apple-ios-sim && \
+		rustup component add rustc && \
+		rustup component add rust-src && \
+		cargo install cbindgen;
+	cd Signal-iOS/Pods/SignalRingRTC; make clean;
+	cd Signal-iOS/Pods/SignalRingRTC; \
+	  PATH=$(DEPOT_TOOLS):$(PATH) make ios
+	cd Signal-iOS/Pods/SignalRingRTC/src/webrtc/src && \
+		git apply ../../../../../../webrtc.diff
+	cd Signal-iOS/Pods/SignalRingRTC; \
+		PATH=$(DEPOT_TOOLS):$(PATH) make clean
+	cd Signal-iOS/Pods/SignalRingRTC; \
+		PATH=$(DEPOT_TOOLS):$(PATH) make ios
 
 build-ios-debug: remove-ios check-depot-tools
 	git clone https://github.com/signalapp/Signal-iOS.git \

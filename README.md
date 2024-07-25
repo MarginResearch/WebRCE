@@ -8,6 +8,10 @@ blog series.
 
 # Part 1
 
+Instructions for following along with
+[Part 1](https://margin.re/2024/07/you-cant-spell-webrtc-without-rce-part-1/)
+of the blog series.
+
 ## Building
 
 Building requires downloading Google's `depot_tools` and setting an environment
@@ -36,7 +40,7 @@ Pixel 6, Android 11, API 30 from Android Studio devices
 
 Build the app with debug symbols for deployment in Xcode's Simulator to follow
 along with injecting and triggering the vulnerabilities in Part 1 of the blog.
-Set the `DEPOT_TOOLS` environment variable as outined above and run `make
+Set the `DEPOT_TOOLS` environment variable as outlined above and run `make
 build-ios-debug`. This will fetch Signal-iOS, download dependencies, patch
 WebRTC, and recompile Signal-iOS with the injected vulnerabilities. Load the
 resulting `Signal-iOS-debug` project in Xcode and boot the app in a Simulator
@@ -109,4 +113,102 @@ vulnerabilities using the following commands:
 python3 trigger.py -D emulator-5554 -t read -n <target number>
 # or
 python3 trigger.py -D emulator-5554 -t write -n <target number>
+```
+
+# Part 2
+
+Instructions for following along with
+[Part 2](https://margin.re/2024/07/you-cant-spell-webrtc-without-rce-part-2/)
+of the blog series.
+
+## Building
+
+Install the dependencies and set the `DEPOT_TOOLS` environment variable as
+outlined in the beginning of Part 1's "Building" section.
+
+### iOS
+
+Create an [Apple Developer account](https://developer.apple.com/) that allows
+for signing of compiled .ipa files. Update Xcode to recognize this account.
+
+Set the `DEPOT_TOOLS` environment variable as outlined in Part 1 and run `make
+build-ios-archive`. This will fetch Signal-iOS, download dependencies, patch
+WebRTC, and recompile Signal-iOS with the injected vulnerabilities. Load the
+resulting `Signal-iOS` project in Xcode and change the following project
+settings.
+
+In the `Signal` app project settings:
+* Build Settings -> `SIGNAL_BUNDLEID_PREFIX`: change to a new prefix, preferably
+one associated with the group/company of the Apple Developer account
+* Target `Signal` -> Signing & Capabilities: change the `Team` profile to the
+Apple Developer account or the account's company name. This is required for
+Debug and Testable Release configurations
+* Target `SignalNSE` -> Signing & Capabilities: change the `Team` profile to
+the Apple Developer account or the account's company name. This is required for
+Debug and Testable Release configurations
+* Target `SignalShareExtension` -> Signing & Capabilities: change the `Team`
+profile to the Apple Developer account or the account's company name. This is
+required for Debug and Testable Release configurations
+* Target `Signal` -> Signing & Capabilities -> Entitlements: delete the
+Apple Pay, Communication Notifications, and Data Protection entitlements
+* Do the same as above for the `SignalShareExtension` and `SignalNSE` targets
+
+Edit the project scheme for Archiving to be Testable Release.
+
+Set the target device to `Any iOS Device (arm64)` and build the program. Select
+the Debugging distribution as the final output. Choose a storage location on
+disk for the archived .ipa file.
+
+### Android
+
+Build the Android thrower as outlined in Part 1. No further modification
+are necessary.
+
+## Running
+
+### Corellium
+
+Register for a [Corellium](https://www.corellium.com/)
+account and create the target iPhone device: iPhone
+14 Pro running iOS 16.4 (20E247). Install the compiled application on the
+virtualized device by dragging and dropping into the Apps pane after booting.
+*Turn off Background Refresh in Settings -> General -> Background App Refresh ->
+Signal and Disable Notifications in Settings -> Signal -> Notifications*.
+Failing to perform these actions will prevent the device from registering a
+phone number. Register a victim phone number and send a text message to the
+attacking phone number so they are in one another's address book.
+
+An alternative to Corellium is to jailbreak a real device to allow for
+installation of the vulnerable app. This blog does not cover jailbreaking.
+
+### Android Thrower
+
+Perform the same tasks as outlined in Part 1 to boot the Android thrower device
+with Frida-server running in the background.
+
+## Throwing
+
+### Fetching Target Files
+
+Fetch the appropriate iOS ipsw using
+[Blacktop's ipsw tool](https://github.com/blacktop/ipsw.git). For example,
+fetch iOS 16.4 for the iPhone 14 Pro (using a
+[list of device numbers](https://gist.github.com/adamawolf/3048717)
+maintained by Adam Wolf):
+
+```shell
+ipsw download --device iPhone15,2 --build 20E247 ipsw
+# downloads file iPhone15,2_16.4_20E247_Restore.ipsw
+```
+
+### Triggering RCE
+
+Navigate to the `frida-scripts` directory and throw the payload using the
+following command:
+
+```shell
+cd frida_spython3 exploit.py -l call.js,exploit.js -n <number> -D <emulator> \
+    -c <path to iPhone15,2_16.4_20E247_Restore.ipsw> \
+    -s <path to target Signal.ipa> \
+    -g ./gadgets.json
 ```
